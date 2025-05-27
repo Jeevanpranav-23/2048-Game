@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2048 Game</title>
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            text-align: center;
+            background-color: #faf8ef;
+            color: #776e65;
+        }
+
+        hr {
+            width: 500px;
+            border: 1px solid #bbada0;
+        }
+
+        #game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #header {
+            margin-bottom: 20px;
+        }
+
+        #controls-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        #scores-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .score-box {
+            background-color: #bbada0;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-weight: bold;
+            min-width: 100px;
+        }
+
+        #board {
+            background-color: #bbada0;
+            border: 6px solid #bbada0;
+            border-radius: 6px;
+            margin: 0 auto;
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .tile {
+            border: 5px solid #bbada0;
+            border-radius: 3px;
+            font-size: 40px;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.1s ease-in-out;
+        }
+
+        /* colored tiles */
+        .x2 {
+            background-color: #eee4da;
+            color: #727371;
+        }
+
+        .x4 {
+            background-color: #ece0ca;
+            color: #727371;
+        }
+
+        .x8 {
+            background-color: #f4b17a;
+            color: white;
+        }
+
+        .x16 {
+            background-color: #f59575;
+            color: white;
+        }
+
+        .x32 {
+            background-color: #f57c5f;
+            color: white;
+        }
+
+        .x64 {
+            background-color: #f65d3b;
+            color: white;
+        }
+
+        .x128 {
+            background-color: #edce71;
+            color: white;
+        }
+
+        .x256 {
+            background-color: #edcc63;
+            color: white;
+        }
+
+        .x512 {
+            background-color: #edc651;
+            color: white;
+        }
+
+        .x1024 {
+            background-color: #eec744;
+            color: white;
+        }
+
+        .x2048 {
+            background-color: #ecc230;
+            color: white;
+        }
+
+        .x4096 {
+            background-color: #fe3d3d;
+            color: white;
+        }
+
+        .x8192 {
+            background-color: #ff2020;
+            color: white;
+        }
+
+        #difficulty-container, #game-modes {
+            background-color: #eee4da;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+
+        #difficulty-container h3, #game-modes h3 {
+            margin-top: 0;
+        }
+
+        #difficulty-container input[type="radio"], #game-modes input[type="checkbox"] {
+            margin: 0 5px 0 15px;
+        }
+
+        #difficulty-container label, #game-modes label {
+            cursor: pointer;
+        }
+
+        #player-form {
+            margin: 20px 0;
+        }
+
+        #player-name {
+            padding: 8px;
+            border: 2px solid #bbada0;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+
+        button {
+            padding: 8px 15px;
+            background-color: #8f7a66;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 5px;
+        }
+
+        button:hover {
+            background-color: #9f8b77;
+        }
+
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        #high-scores {
+            margin-top: 30px;
+            width: 500px;
+            border-collapse: collapse;
+        }
+
+        #high-scores th, #high-scores td {
+            padding: 10px;
+            border: 1px solid #bbada0;
+        }
+
+        #high-scores th {
+            background-color: #bbada0;
+            color: white;
+        }
+
+        #high-scores tr:nth-child(even) {
+            background-color: #eee4da;
+        }
+
+        .obstacle {
+            background-color: #333 !important;
+            color: white !important;
+        }
+
+        .tile-merge {
+            animation: mergeAnimation 0.2s;
+            transform: scale(1.1);
+        }
+
+        @keyframes mergeAnimation {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+
+        .modal-content {
+            background-color: #faf8ef;
+            margin: 10% auto;
+            padding: 20px;
+            border: 1px solid #bbada0;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 600px;
+            box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+        }
+
+        .close {
+            color: #776e65;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #333;
+        }
+
+        .modal-tabs {
+            display: flex;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #bbada0;
+        }
+
+        .tab-btn {
+            padding: 10px 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            color: #776e65;
+        }
+
+        .tab-btn.active {
+            border-bottom: 3px solid #8f7a66;
+            color: #8f7a66;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        #help-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: #8f7a66;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        #help-btn:hover {
+            background-color: #9f8b77;
+        }
+
+        @media (max-width: 600px) {
+            #board {
+                width: 300px;
+                height: 300px;
+            }
+
+            .tile {
+                font-size: 30px;
+                border: 4px solid #bbada0;
+            }
+
+            hr {
+                width: 90%;
+            }
+
+            #high-scores {
+                width: 90%;
+                font-size: 14px;
+            }
+
+            #controls-container {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .modal-content {
+                margin: 20% auto;
+                width: 90%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="game-container">
+        <div id="header">
+            <h1>2048 Game</h1>
+        </div>
+
+        <div id="player-form">
+            <input type="text" id="player-name" placeholder="Enter your name">
+            <button onclick="startGame()">Start Game</button>
+        </div>
+
+        <div id="controls-container">
+            <div id="difficulty-container">
+                <h3>Select Difficulty</h3>
+                <div>
+                    <input type="radio" id="easy" name="difficulty" value="easy" checked>
+                    <label for="easy">Easy (4x4)</label>
+                    
+                    <input type="radio" id="medium" name="difficulty" value="medium">
+                    <label for="medium">Medium (5x5)</label>
+                    
+                    <input type="radio" id="hard" name="difficulty" value="hard">
+                    <label for="hard">Hard (6x6)</label>
+                </div>
+            </div>
+
+            <div id="game-modes">
+                <h3>Game Modes</h3>
+                <div>
+                    <input type="checkbox" id="timer-mode">
+                    <label for="timer-mode">Timer Challenge (2 min)</label>
+                </div>
+                <button id="undo-btn" onclick="undoMove()" disabled>Undo Move</button>
+            </div>
+        </div>
+
+        <div id="scores-container">
+            <div class="score-box">
+                Score: <span id="score">0</span>
+            </div>
+            <div class="score-box">
+                Best: <span id="best-score">0</span>
+            </div>
+            <div class="score-box" id="time-container" style="display: none;">
+                Time: <span id="time">0</span>s
+            </div>
+        </div>
+
+        <div id="board"></div>
+
+        <div id="high-scores-container">
+            <h2>High Scores</h2>
+            <table id="high-scores">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Name</th>
+                        <th>Score</th>
+                        <th>Date</th>
+                        <th>Mode</th>
+                    </tr>
+                </thead>
+                <tbody id="high-scores-body">
+                    <!-- Scores will be added here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Help Button -->
+    <button id="help-btn" onclick="openModal()">?</button>
+
+    <!-- Modal for instructions -->
+    <div id="help-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>How to Play 2048</h2>
+            
+            <div class="modal-tabs">
+                <button class="tab-btn active" onclick="openTab(event, 'desktop-tab')">Desktop</button>
+                <button class="tab-btn" onclick="openTab(event, 'mobile-tab')">Mobile</button>
+                <button class="tab-btn" onclick="openTab(event, 'about-tab')">About</button>
+            </div>
+            
+            <div id="desktop-tab" class="tab-content active">
+                <h3>Desktop Controls</h3>
+                <p>Use your <strong>arrow keys</strong> to move the tiles in four directions:</p>
+                <ul>
+                    <li><strong>↑</strong> - Slide tiles upward</li>
+                    <li><strong>↓</strong> - Slide tiles downward</li>
+                    <li><strong>←</strong> - Slide tiles to the left</li>
+                    <li><strong>→</strong> - Slide tiles to the right</li>
+                </ul>
+                
+                <h3>Game Rules</h3>
+                <ul>
+                    <li>When two tiles with the same number touch, they <strong>merge into one!</strong></li>
+                    <li>After each move, a new tile (either 2 or 4) appears on the board</li>
+                    <li>Avoid the <strong>obstacle tiles (X)</strong> which block movement</li>
+                    <li>Try to reach the <strong>2048 tile</strong> to win!</li>
+                    <li>The game ends when the board is full and no more moves are possible</li>
+                </ul>
+            </div>
+            
+            <div id="mobile-tab" class="tab-content">
+                <h3>Mobile Controls</h3>
+                <p><strong>Swipe</strong> in any direction to move the tiles:</p>
+                <ul>
+                    <li><strong>↑ Swipe up</strong> - Slide tiles upward</li>
+                    <li><strong>↓ Swipe down</strong> - Slide tiles downward</li>
+                    <li><strong>← Swipe left</strong> - Slide tiles to the left</li>
+                    <li><strong>→ Swipe right</strong> - Slide tiles to the right</li>
+                </ul>
+                
+                <h3>Game Rules</h3>
+                <ul>
+                    <li>When two tiles with the same number touch, they <strong>merge into one!</strong></li>
+                    <li>After each move, a new tile (either 2 or 4) appears on the board</li>
+                    <li>Avoid the <strong>obstacle tiles (X)</strong> which block movement</li>
+                    <li>Try to reach the <strong>2048 tile</strong> to win!</li>
+                    <li>The game ends when the board is full and no more moves are possible</li>
+                </ul>
+            </div>
+            
+            <div id="about-tab" class="tab-content">
+                <h3>About This Game</h3>
+                <p>This is an enhanced version of the classic 2048 puzzle game with additional features:</p>
+                <ul>
+                    <li><strong>Multiple difficulties</strong>: 4x4 (Easy), 5x5 (Medium), 6x6 (Hard)</li>
+                    <li><strong>Special game modes</strong>: Timer challenge mode</li>
+                    <li><strong>Obstacle tiles</strong> in harder difficulties</li>
+                    <li><strong>Undo move</strong> functionality</li>
+                    <li><strong>High score tracking</strong> with player names</li>
+                    <li><strong>Works completely offline</strong> - no internet required</li>
+                </ul>
+                
+                <h3>Tips & Strategies</h3>
+                <ul>
+                    <li>Try to keep your highest number in a corner</li>
+                    <li>Build chains of descending numbers</li>
+                    <li>Plan several moves ahead</li>
+                    <li>In harder difficulties, be mindful of obstacle tiles</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Offline sound effects using Base64 encoded audio -->
+    <audio id="move-sound" preload="auto">
+        <source src="data:audio/mpeg;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGFTb25vdGhlcXVlLm9yZwBURU5DAAAAHQAAA1N3aXRjaCBQbHVzIMKpIE5DSCBTb2Z0d2FyZQBUSVQyAAAABgAAAzIyMzUAVFNTRQAAAA8AAANMYXZmNTcuODMuMTAwAAAAAAAAAAAAAAD/80DEAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsRbAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV" type="audio/mpeg">
+    </audio>
+    <audio id="merge-sound" preload="auto">
+        <source src="data:audio/mpeg;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGFTb25vdGhlcXVlLm9yZwBURU5DAAAAHQAAA1N3aXRjaCBQbHVzIMKpIE5DSCBTb2Z0d2FyZQBUSVQyAAAABgAAAzIyMzUAVFNTRQAAAA8AAANMYXZmNTcuODMuMTAwAAAAAAAAAAAAAAD/80DEAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsRbAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV" type="audio/mpeg">
+    </audio>
+    <audio id="gameover-sound" preload="auto">
+        <source src="data:audio/mpeg;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGFTb25vdGhlcXVlLm9yZwBURU5DAAAAHQAAA1N3aXRjaCBQbHVzIMKpIE5DSCBTb2Z0d2FyZQBUSVQyAAAABgAAAzIyMzUAVFNTRQAAAA8AAANMYXZmNTcuODMuMTAwAAAAAAAAAAAAAAD/80DEAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsRbAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV" type="audio/mpeg">
+    </audio>
+    <audio id="win-sound" preload="auto">
+        <source src="data:audio/mpeg;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGFTb25vdGhlcXVlLm9yZwBURU5DAAAAHQAAA1N3aXRjaCBQbHVzIMKpIE5DSCBTb2Z0d2FyZQBUSVQyAAAABgAAAzIyMzUAVFNTRQAAAA8AAANMYXZmNTcuODMuMTAwAAAAAAAAAAAAAAD/80DEAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsRbAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV" type="audio/mpeg">
+    </audio>
+
+    <script>
+        // Game variables
+        var board;
+        var score = 0;
+        var bestScore = 0;
+        var rows = 4;
+        var columns = 4;
+        var playerName = "";
+        var gameStarted = false;
+        var touchStartX = 0;
+        var touchStartY = 0;
+        var touchEndX = 0;
+        var touchEndY = 0;
+        var difficulty = "easy";
+        var timerInterval;
+        var seconds = 0;
+        var timerMode = false;
+        var previousBoards = [];
+        var previousScores = [];
+        var gameMode = "normal";
+
+        // Modal functions
+        function openModal() {
+            document.getElementById("help-modal").style.display = "block";
+        }
+
+        function closeModal() {
+            document.getElementById("help-modal").style.display = "none";
+        }
+
+        function openTab(evt, tabName) {
+            var i, tabcontent, tabbuttons;
+            
+            tabcontent = document.getElementsByClassName("tab-content");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].classList.remove("active");
+            }
+            
+            tabbuttons = document.getElementsByClassName("tab-btn");
+            for (i = 0; i < tabbuttons.length; i++) {
+                tabbuttons[i].classList.remove("active");
+            }
+            
+            document.getElementById(tabName).classList.add("active");
+            evt.currentTarget.classList.add("active");
+        }
+
+        // Close modal when clicking outside of it
+        window.onclick = function(event) {
+            var modal = document.getElementById("help-modal");
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+
+        // Initialize game when window loads
+        window.onload = function() {
+            loadBestScore();
+            loadHighScores();
+            setupTouchControls();
+        }
+
+        function setupTouchControls() {
+            var boardElement = document.getElementById("board");
+            boardElement.addEventListener('touchstart', function(event) {
+                touchStartX = event.touches[0].clientX;
+                touchStartY = event.touches[0].clientY;
+            }, false);
+
+            boardElement.addEventListener('touchend', function(event) {
+                touchEndX = event.changedTouches[0].clientX;
+                touchEndY = event.changedTouches[0].clientY;
+                handleSwipe();
+            }, false);
+        }
+
+        function handleSwipe() {
+            if (!gameStarted) return;
+            
+            var dx = touchEndX - touchStartX;
+            var dy = touchEndY - touchStartY;
+            
+            // Determine the dominant direction
+            if (Math.abs(dx) > Math.abs(dy)) {
+                // Horizontal swipe
+                if (dx > 0) {
+                    slideRight();
+                } else {
+                    slideLeft();
+                }
+            } else {
+                // Vertical swipe
+                if (dy > 0) {
+                    slideDown();
+                } else {
+                    slideUp();
+                }
+            }
+            
+            setTwo();
+            document.getElementById("score").innerText = score;
+            updateBestScore();
+        }
+
+        function playSound(id) {
+            try {
+                let sound = document.getElementById(id);
+                sound.currentTime = 0;
+                sound.play().catch(e => console.log("Sound playback prevented:", e));
+            } catch (e) {
+                console.log("Sound error:", e);
+            }
+        }
+
+        function startGame() {
+            playerName = document.getElementById("player-name").value.trim();
+            if (playerName === "") {
+                alert("Please enter your name to start the game!");
+                return;
+            }
+            
+            // Get selected difficulty
+            difficulty = document.querySelector('input[name="difficulty"]:checked').value;
+            
+            // Set board size based on difficulty
+            switch(difficulty) {
+                case "easy":
+                    rows = 4;
+                    columns = 4;
+                    break;
+                case "medium":
+                    rows = 5;
+                    columns = 5;
+                    break;
+                case "hard":
+                    rows = 6;
+                    columns = 6;
+                    break;
+            }
+            
+            // Set game mode
+            timerMode = document.getElementById("timer-mode").checked;
+            gameMode = timerMode ? "timer" : "normal";
+            
+            if (timerMode) {
+                document.getElementById("time-container").style.display = "block";
+                startTimer();
+            } else {
+                document.getElementById("time-container").style.display = "none";
+                stopTimer();
+            }
+            
+            gameStarted = true;
+            score = 0;
+            document.getElementById("score").innerText = score;
+            setGame();
+        }
+
+        function startTimer() {
+            seconds = 0;
+            document.getElementById("time").innerText = seconds;
+            clearInterval(timerInterval);
+            timerInterval = setInterval(function() {
+                seconds++;
+                document.getElementById("time").innerText = seconds;
+                
+                // Check if time's up in timer mode
+                if (timerMode && seconds >= 120) {
+                    clearInterval(timerInterval);
+                    alert("Time's up! Your score: " + score);
+                    saveHighScore();
+                    gameStarted = false;
+                }
+            }, 1000);
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+        }
+
+        function setGame() {
+            board = [];
+            previousBoards = [];
+            previousScores = [];
+            document.getElementById("undo-btn").disabled = true;
+            
+            for (let r = 0; r < rows; r++) {
+                board[r] = [];
+                for (let c = 0; c < columns; c++) {
+                    board[r][c] = 0;
+                }
+            }
+
+            // Clear the board
+            document.getElementById("board").innerHTML = "";
+            
+            // Adjust board size in CSS
+            let boardSize = Math.min(500, window.innerWidth - 40);
+            let tileSize = (boardSize - 10) / Math.max(rows, columns) - 10;
+            
+            document.getElementById("board").style.width = `${boardSize}px`;
+            document.getElementById("board").style.height = `${boardSize}px`;
+            
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < columns; c++) {
+                    let tile = document.createElement("div");
+                    tile.id = r.toString() + "-" + c.toString();
+                    tile.className = "tile";
+                    tile.style.width = `${tileSize}px`;
+                    tile.style.height = `${tileSize}px`;
+                    tile.style.fontSize = `${tileSize * 0.4}px`;
+                    document.getElementById("board").append(tile);
+                }
+            }
+            
+            setTwo();
+            setTwo();
+            
+            // Add initial obstacles for harder difficulties
+            if (difficulty === "hard") {
+                setSpecialTile();
+                setSpecialTile();
+            } else if (difficulty === "medium") {
+                setSpecialTile();
+            }
+        }
+
+        function updateTile(tile, num, merged = false) {
+            tile.innerText = "";
+            tile.classList.value = ""; 
+            tile.classList.add("tile");
+            if (num > 0) {
+                tile.innerText = num.toString();
+                if (num <= 4096) {
+                    tile.classList.add("x"+num.toString());
+                } else {
+                    tile.classList.add("x8192");
+                }                
+            } else if (num === -1) {
+                tile.innerText = "X";
+                tile.classList.add("obstacle");
+            }
+            
+            if (merged) {
+                tile.classList.add("tile-merge");
+                setTimeout(() => {
+                    tile.classList.remove("tile-merge");
+                }, 200);
+            }
+        }
+
+        function saveState() {
+            // Save current board state
+            let boardCopy = [];
+            for (let r = 0; r < rows; r++) {
+                boardCopy[r] = [...board[r]];
+            }
+            previousBoards.push(boardCopy);
+            previousScores.push(score);
+            
+            // Limit undo history to 5 moves
+            if (previousBoards.length > 5) {
+                previousBoards.shift();
+                previousScores.shift();
+            }
+            
+            document.getElementById("undo-btn").disabled = false;
+        }
+
+        function undoMove() {
+            if (previousBoards.length === 0 || !gameStarted) return;
+            
+            let lastBoard = previousBoards.pop();
+            let lastScore = previousScores.pop();
+            
+            // Restore state
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < columns; c++) {
+                    board[r][c] = lastBoard[r][c];
+                    let tile = document.getElementById(r.toString() + "-" + c.toString());
+                    updateTile(tile, board[r][c]);
+                }
+            }
+            
+            score = lastScore;
+            document.getElementById("score").innerText = score;
+            
+            if (previousBoards.length === 0) {
+                document.getElementById("undo-btn").disabled = true;
+            }
+            
+            playSound("move-sound");
+        }
+
+        function setSpecialTile() {
+            if (Math.random() < 0.1) { // 10% chance for special tile
+                let found = false;
+                while (!found) {
+                    let r = Math.floor(Math.random() * rows);
+                    let c = Math.floor(Math.random() * columns);
+                    if (board[r][c] == 0) {
+                        board[r][c] = -1; // Obstacle
+                        let tile = document.getElementById(r.toString() + "-" + c.toString());
+                        updateTile(tile, board[r][c]);
+                        found = true;
+                    }
+                }
+            }
+        }
+
+        document.addEventListener('keyup', (e) => {
+            if (!gameStarted) return;
+            
+            if (e.code == "ArrowLeft") {
+                slideLeft();
+            }
+            else if (e.code == "ArrowRight") {
+                slideRight();
+            }
+            else if (e.code == "ArrowUp") {
+                slideUp();
+            }
+            else if (e.code == "ArrowDown") {
+                slideDown();
+            }
+            
+            document.getElementById("score").innerText = score;
+            updateBestScore();
+        })
+
+        function filterZero(row) {
+            return row.filter(num => num != 0); 
+        }
+
+        function slide(row) {
+            row = filterZero(row);
+            for (let i = 0; i < row.length-1; i++) {
+                if (row[i] == -1) continue; // Skip obstacles
+                if (row[i] == row[i+1]) {
+                    row[i] *= 2;
+                    row[i+1] = 0;
+                    score += row[i];
+                    playSound("merge-sound");
+                }
+            } 
+            row = filterZero(row); 
+            
+            while (row.length < columns) {
+                row.push(0);
+            } 
+            return row;
+        }
+
+        function slideLeft() {
+            saveState();
+            let moved = false;
+            
+            for (let r = 0; r < rows; r++) {
+                let row = board[r];
+                let newRow = slide([...row]);
+                
+                // Check if the row changed
+                if (JSON.stringify(row) !== JSON.stringify(newRow)) {
+                    moved = true;
+                    board[r] = newRow;
+                }
+                
+                for (let c = 0; c < columns; c++) {
+                    let tile = document.getElementById(r.toString() + "-" + c.toString());
+                    updateTile(tile, board[r][c], moved && board[r][c] !== 0 && board[r][c] !== -1);
+                }
+            }
+            
+            if (moved) {
+                playSound("move-sound");
+                setTwo();
+                setSpecialTile();
+            }
+        }
+
+        function slideRight() {
+            saveState();
+            let moved = false;
+            
+            for (let r = 0; r < rows; r++) {
+                let row = board[r];        
+                row.reverse();              
+                let newRow = slide([...row]);        
+                row.reverse();
+                newRow.reverse();
+                
+                // Check if the row changed
+                if (JSON.stringify(board[r]) !== JSON.stringify(newRow)) {
+                    moved = true;
+                    board[r] = newRow;
+                }
+                
+                for (let c = 0; c < columns; c++) {
+                    let tile = document.getElementById(r.toString() + "-" + c.toString());
+                    updateTile(tile, board[r][c], moved && board[r][c] !== 0 && board[r][c] !== -1);
+                }
+            }
+            
+            if (moved) {
+                playSound("move-sound");
+                setTwo();
+                setSpecialTile();
+            }
+        }
+
+        function slideUp() {
+            saveState();
+            let moved = false;
+            
+            for (let c = 0; c < columns; c++) {
+                let column = [];
+                for (let r = 0; r < rows; r++) {
+                    column.push(board[r][c]);
+                }
+                
+                let newColumn = slide([...column]);
+                
+                // Check if the column changed
+                if (JSON.stringify(column) !== JSON.stringify(newColumn)) {
+                    moved = true;
+                    for (let r = 0; r < rows; r++) {
+                        board[r][c] = newColumn[r];
+                    }
+                }
+                
+                for (let r = 0; r < rows; r++) {
+                    let tile = document.getElementById(r.toString() + "-" + c.toString());
+                    updateTile(tile, board[r][c], moved && board[r][c] !== 0 && board[r][c] !== -1);
+                }
+            }
+            
+            if (moved) {
+                playSound("move-sound");
+                setTwo();
+                setSpecialTile();
+            }
+        }
+
+        function slideDown() {
+            saveState();
+            let moved = false;
+            
+            for (let c = 0; c < columns; c++) {
+                let column = [];
+                for (let r = 0; r < rows; r++) {
+                    column.push(board[r][c]);
+                }
+                
+                column.reverse();
+                let newColumn = slide([...column]);
+                newColumn.reverse();
+                
+                // Check if the column changed
+                if (JSON.stringify(column.reverse()) !== JSON.stringify(newColumn)) {
+                    moved = true;
+                    for (let r = 0; r < rows; r++) {
+                        board[r][c] = newColumn[r];
+                    }
+                }
+                
+                for (let r = 0; r < rows; r++) {
+                    let tile = document.getElementById(r.toString() + "-" + c.toString());
+                    updateTile(tile, board[r][c], moved && board[r][c] !== 0 && board[r][c] !== -1);
+                }
+            }
+            
+            if (moved) {
+                playSound("move-sound");
+                setTwo();
+                setSpecialTile();
+            }
+        }
+
+        function setTwo() {
+            if (!hasEmptyTile()) {
+                checkGameOver();
+                return;
+            }
+            
+            let found = false;
+            while (!found) {
+                let r = Math.floor(Math.random() * rows);
+                let c = Math.floor(Math.random() * columns);
+                if (board[r][c] == 0) {
+                    board[r][c] = 2;
+                    let tile = document.getElementById(r.toString() + "-" + c.toString());
+                    updateTile(tile, board[r][c]);
+                    found = true;
+                }
+            }
+        }
+
+        function hasEmptyTile() {
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < columns; c++) {
+                    if (board[r][c] == 0) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        function checkGameOver() {
+            // Check for win condition (2048 tile)
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < columns; c++) {
+                    if (board[r][c] === 2048) {
+                        playSound("win-sound");
+                        if (confirm("Congratulations! You reached 2048! Do you want to continue playing?")) {
+                            return;
+                        } else {
+                            saveHighScore();
+                            gameStarted = false;
+                            return;
+                        }
+                    }
+                }
+            }
+            
+            // Check if any moves are possible
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < columns; c++) {
+                    if (board[r][c] == 0) {
+                        return; // There are empty tiles
+                    }
+                    if (c < columns - 1 && board[r][c] == board[r][c+1]) {
+                        return; // Horizontal merge possible
+                    }
+                    if (r < rows - 1 && board[r][c] == board[r+1][c]) {
+                        return; // Vertical merge possible
+                    }
+                }
+            }
+            
+            // If we get here, game is over
+            playSound("gameover-sound");
+            alert("Game Over! Your score: " + score);
+            saveHighScore();
+            gameStarted = false;
+            stopTimer();
+        }
+
+        function updateBestScore() {
+            if (score > bestScore) {
+                bestScore = score;
+                document.getElementById("best-score").innerText = bestScore;
+                localStorage.setItem("bestScore", bestScore);
+            }
+        }
+
+        function loadBestScore() {
+            let savedScore = localStorage.getItem("bestScore");
+            if (savedScore) {
+                bestScore = parseInt(savedScore);
+                document.getElementById("best-score").innerText = bestScore;
+            }
+        }
+
+        function saveHighScore() {
+            let highScores = JSON.parse(localStorage.getItem("highScores")) || [];
+            
+            // Add new score
+            highScores.push({
+                name: playerName,
+                score: score,
+                date: new Date().toLocaleDateString(),
+                mode: gameMode,
+                difficulty: difficulty,
+                time: timerMode ? seconds : null
+            });
+            
+            // Sort by score (descending)
+            highScores.sort((a, b) => b.score - a.score);
+            
+            // Keep only top 10 scores
+            highScores = highScores.slice(0, 10);
+            
+            // Save back to localStorage
+            localStorage.setItem("highScores", JSON.stringify(highScores));
+            
+            // Update display
+            loadHighScores();
+        }
+
+        function loadHighScores() {
+            let highScores = JSON.parse(localStorage.getItem("highScores")) || [];
+            let tbody = document.getElementById("high-scores-body");
+            tbody.innerHTML = "";
+            
+            highScores.forEach((entry, index) => {
+                let row = document.createElement("tr");
+                
+                let rankCell = document.createElement("td");
+                rankCell.textContent = index + 1;
+                
+                let nameCell = document.createElement("td");
+                nameCell.textContent = entry.name;
+                
+                let scoreCell = document.createElement("td");
+                scoreCell.textContent = entry.score;
+                
+                let dateCell = document.createElement("td");
+                dateCell.textContent = entry.date;
+                
+                let modeCell = document.createElement("td");
+                modeCell.textContent = entry.mode === "timer" ? 
+                    `Timer (${entry.time}s)` : 
+                    `${entry.difficulty.charAt(0).toUpperCase() + entry.difficulty.slice(1)}`;
+                
+                row.appendChild(rankCell);
+                row.appendChild(nameCell);
+                row.appendChild(scoreCell);
+                row.appendChild(dateCell);
+                row.appendChild(modeCell);
+                
+                tbody.appendChild(row);
+            });
+        }
+    </script>
+</body>
+</html>
